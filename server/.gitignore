@@ -11,8 +11,10 @@ yarn.lock
 .env.production.local
 
 # Production build
-/frontend/build
-/backend/dist
+/build
+/dist
+/client/build
+/server/dist
 
 # Logs
 logs
