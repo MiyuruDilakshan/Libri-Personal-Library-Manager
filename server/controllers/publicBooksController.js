@@ -5,9 +5,9 @@ const axios = require('axios');
 // @access  Public
 const searchBooks = async (req, res) => {
     try {
-        const { q, startIndex = 0, maxResults = 10, printType = 'all', filter, orderBy = 'relevance' } = req.query;
+        const { q, startIndex = 0, maxResults = 10, printType = 'all', filter } = req.query;
 
-        console.log(`[Backend] Searching for: "${q}", Start: ${startIndex}, Type: ${printType}, Filter: ${filter}, OrderBy: ${orderBy}`);
+        console.log(`[Backend] Searching for: "${q}", Start: ${startIndex}, Type: ${printType}, Filter: ${filter}`);
 
         if (!q) {
             console.log('[Backend] Missing query parameter');
@@ -28,8 +28,7 @@ const searchBooks = async (req, res) => {
             startIndex,
             maxResults,
             printType,
-            key: apiKey,
-            orderBy
+            key: apiKey
         };
 
         if (filter) {
