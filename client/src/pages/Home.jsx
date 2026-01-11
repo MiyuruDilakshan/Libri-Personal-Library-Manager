@@ -3,10 +3,12 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import api from '../services/axiosInstance';
 
 const Home = () => {
     const { user } = useAuth();
+    const { addToast } = useToast();
     const [query, setQuery] = useState('');
     const [activeQuery, setActiveQuery] = useState(''); // Stores the actual query used for API
     const [books, setBooks] = useState([]);
@@ -123,7 +125,7 @@ const Home = () => {
 
     const handleSaveBook = async (book) => {
         if (!user) {
-            alert("Please log in to save books to your library!");
+            addToast("Please log in to save books to your library!", "error");
             return;
         }
         
@@ -136,11 +138,11 @@ const Home = () => {
             };
             
             await api.post('/library', payload);
-            alert(`Saved "${book.volumeInfo.title}" to your library!`);
+            addToast(`Saved "${book.volumeInfo.title}" to your library!`, "success");
         } catch (err) {
             console.error(err);
             const msg = err.response?.data?.message || 'Failed to save book (it might already be in your library).';
-            alert(msg);
+            addToast(msg, "info");
         }
     };
 

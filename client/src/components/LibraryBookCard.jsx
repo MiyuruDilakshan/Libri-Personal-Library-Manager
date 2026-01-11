@@ -1,6 +1,6 @@
 import React from 'react';
 
-const LibraryBookCard = ({ book, onEdit, onDelete }) => {
+const LibraryBookCard = ({ book, onEdit, onDelete, onClick }) => {
     const { title, authors, imageLinks } = book.volumeInfo || {};
     const { status, userReview, userRating } = book.userData || {};
 
@@ -14,10 +14,13 @@ const LibraryBookCard = ({ book, onEdit, onDelete }) => {
     };
 
     return (
-        <div className="bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark rounded-xl overflow-hidden hover:shadow-md transition-shadow flex flex-col h-full">
+        <div 
+            onClick={() => onClick(book)}
+            className="bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark rounded-xl overflow-hidden hover:shadow-md transition-shadow flex flex-col h-full cursor-pointer group"
+        >
             <div className="flex p-4 gap-4">
                 {/* Thumbnail */}
-                <div className="w-24 h-36 flex-shrink-0 bg-slate-200 dark:bg-slate-700 rounded-md overflow-hidden relative">
+                <div className="w-24 h-36 flex-shrink-0 bg-slate-200 dark:bg-slate-700 rounded-md overflow-hidden relative shadow-sm group-hover:shadow transition-all">
                     {imageLinks?.thumbnail ? (
                         <img 
                             src={imageLinks.thumbnail.replace('http:', 'https:')} 
@@ -39,14 +42,14 @@ const LibraryBookCard = ({ book, onEdit, onDelete }) => {
                         </h3>
                         <div className="flex items-center gap-1">
                              <button 
-                                onClick={() => onEdit(book)}
+                                onClick={(e) => { e.stopPropagation(); onEdit(book); }}
                                 className="p-1.5 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
                                 title="Edit Status/Review"
                             >
                                 <span className="material-symbols-outlined text-[20px]">edit</span>
                             </button>
                             <button 
-                                onClick={() => onDelete(book)}
+                                onClick={(e) => { e.stopPropagation(); onDelete(book); }}
                                 className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors"
                                 title="Remove from Library"
                             >

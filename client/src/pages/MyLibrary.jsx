@@ -4,12 +4,15 @@ import Footer from '../components/Footer';
 import LibraryBookCard from '../components/LibraryBookCard';
 import EditBookModal from '../components/EditBookModal';
 import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
+import BookDetailModal from '../components/BookDetailModal';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/axiosInstance';
 
 const MyLibrary = () => {
     const { user, loading: authLoading } = useAuth();
+    const { addToast } = useToast();
     const navigate = useNavigate();
     const [libraryBooks, setLibraryBooks] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -18,6 +21,7 @@ const MyLibrary = () => {
     // Modal States
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [selectedBook, setSelectedBook] = useState(null);
 
     // Filter books based on active tab
@@ -64,6 +68,11 @@ const MyLibrary = () => {
     }, [user, authLoading, navigate]);
 
     // Handlers
+    const handleCardClick = (book) => {
+        setSelectedBook(book);
+        setIsDetailModalOpen(true);
+    };
+
     const handleEditClick = (book) => {
         setSelectedBook(book);
         setIsEditModalOpen(true);
@@ -110,9 +119,10 @@ const MyLibrary = () => {
             setLibraryBooks(prev => prev.map(b => b.id === formattedUpdatedBook.id ? formattedUpdatedBook : b));
             setIsEditModalOpen(false);
             setSelectedBook(null);
+            addToast('Book updated successfully!', 'success');
         } catch (error) {
             console.error("Failed to update book", error);
-            alert("Failed to update book");
+            addToast('Failed to update book', 'error');
         }
     };
 
@@ -123,9 +133,10 @@ const MyLibrary = () => {
             setLibraryBooks(prev => prev.filter(b => b.id !== selectedBook.id));
             setIsDeleteModalOpen(false);
             setSelectedBook(null);
+            addToast('Book removed from library', 'success');
         } catch (error) {
             console.error("Failed to delete book", error);
-            alert("Failed to delete book");
+            addToast('Failed to delete book', 'error');
         }
     };
 
@@ -197,6 +208,7 @@ const MyLibrary = () => {
                                 book={book} 
                                 onEdit={handleEditClick} 
                                 onDelete={handleDeleteClick} 
+                                onClick={handleCardClick}
                             />
                         ))}
                     </div>
@@ -235,6 +247,12 @@ const MyLibrary = () => {
                 onClose={() => setIsDeleteModalOpen(false)}
                 onConfirm={handleConfirmDelete}
                 bookTitle={selectedBook?.volumeInfo?.title}
+            />
+
+            <BookDetailModal 
+                book={selectedBook} 
+                isOpen={isDetailModalOpen} 
+                onClose={() => setIsDetailModalOpen(false)} 
             />
         </div>
     );

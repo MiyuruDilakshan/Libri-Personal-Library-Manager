@@ -133,11 +133,9 @@ const Header = () => {
                                     onClick={() => setIsProfileOpen(!isProfileOpen)}
                                     className="flex items-center gap-2 focus:outline-none"
                                 >
-                                    <img 
-                                        src={user.avatar || "https://ui-avatars.com/api/?name=User&background=random"} 
-                                        alt="Profile" 
-                                        className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-700 shadow-sm"
-                                    />
+                                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white border-2 border-white dark:border-slate-700 shadow-sm">
+                                        <span className="material-symbols-outlined text-[20px]">person</span>
+                                    </div>
                                 </button>
 
                                 {/* Dropdown Menu */}
