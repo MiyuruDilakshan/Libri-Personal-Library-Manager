@@ -302,22 +302,30 @@ const Home = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {books.map((book, idx) => {
                                 const volumeInfo = book.volumeInfo;
-                                const thumbnail = volumeInfo.imageLinks?.thumbnail || 'https://via.placeholder.com/128x192?text=No+Cover';
-                                const highResImage = thumbnail.replace('zoom=1', 'zoom=2'); 
+                                // Robust image handling: check varying sizes, force HTTPS, generic fallback
+                                let initialImage = volumeInfo.imageLinks?.thumbnail || volumeInfo.imageLinks?.smallThumbnail;
+                                if (initialImage) {
+                                    initialImage = initialImage.replace('http:', 'https:');
+                                }
                                 
                                 return (
                                     <article key={`${book.id}-${idx}`} className="group relative flex flex-col bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark overflow-hidden hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 hover:-translate-y-1">
                                         <div className="relative w-full aspect-[2/3] bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                                            {!volumeInfo.imageLinks && (
-                                                <div className="absolute inset-0 flex items-center justify-center bg-slate-200 dark:bg-slate-700 text-slate-400">
-                                                    <span className="material-symbols-outlined text-4xl">image_not_supported</span>
-                                                </div>
+                                            {/* Fallback pattern if image is missing or fails to load */}
+                                            <div className="absolute inset-0 flex items-center justify-center bg-slate-200 dark:bg-slate-700 text-slate-400 z-0">
+                                                <span className="material-symbols-outlined text-4xl">image_not_supported</span>
+                                            </div>
+                                            
+                                            {initialImage && (
+                                                <img 
+                                                    alt={`Cover of ${volumeInfo.title}`} 
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 relative z-10 bg-slate-100 dark:bg-slate-800" 
+                                                    src={initialImage}
+                                                    onError={(e) => {
+                                                        e.target.style.display = 'none'; // Hide broken image so generic fallback shows
+                                                    }}
+                                                />
                                             )}
-                                            <img 
-                                                alt={`Cover of ${volumeInfo.title}`} 
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 relative z-10" 
-                                                src={highResImage} 
-                                            />
                                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-[2px] z-20">
                                                 <a href={volumeInfo.previewLink} target="_blank" rel="noopener noreferrer" className="p-3 bg-white text-slate-900 rounded-full hover:bg-primary hover:text-white transition-colors shadow-lg" title="View on Google Books">
                                                     <span className="material-symbols-outlined text-[20px] block">visibility</span>
