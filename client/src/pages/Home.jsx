@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
+    const { user } = useAuth();
     const [query, setQuery] = useState('');
     const [activeQuery, setActiveQuery] = useState(''); // Stores the actual query used for API
     const [books, setBooks] = useState([]);
@@ -116,6 +118,15 @@ const Home = () => {
             // Scroll to top of results
             resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
+    };
+
+    const handleSaveBook = (book) => {
+        if (!user) {
+            alert("Please log in to save books to your library!");
+            return;
+        }
+        // In real backend integration, this would call API
+        alert(`Saved "${book.volumeInfo.title}" to your library!`);
     };
 
     return (
@@ -368,6 +379,13 @@ const Home = () => {
                                                 />
                                             )}
                                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-[2px] z-20">
+                                                <button 
+                                                    onClick={() => handleSaveBook(book)}
+                                                    className="p-3 bg-white text-slate-900 rounded-full hover:bg-primary hover:text-white transition-colors shadow-lg" 
+                                                    title={user ? "Save to My Library" : "Login to Save"}
+                                                >
+                                                    <span className="material-symbols-outlined text-[20px] block">bookmark_add</span>
+                                                </button>
                                                 <a href={volumeInfo.previewLink} target="_blank" rel="noopener noreferrer" className="p-3 bg-white text-slate-900 rounded-full hover:bg-primary hover:text-white transition-colors shadow-lg" title="View on Google Books">
                                                     <span className="material-symbols-outlined text-[20px] block">visibility</span>
                                                 </a>

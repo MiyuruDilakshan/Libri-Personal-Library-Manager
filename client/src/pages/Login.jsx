@@ -1,9 +1,20 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
+import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    // Simulate login
+    login({ email });
+    navigate('/');
+  };
 
   return (
     <div className="bg-surface-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display h-screen w-full flex flex-col overflow-hidden">
@@ -84,7 +95,7 @@ const Login = () => {
           </div>
 
           {/* FORM */}
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={handleLogin}>
             <div className="space-y-1">
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Email address</label>
               <div className="relative group">
@@ -94,6 +105,8 @@ const Login = () => {
                 <input
                   type="email"
                   placeholder="name@company.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="block w-full pl-10 pr-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all sm:text-sm font-medium"
                 />
               </div>
