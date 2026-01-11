@@ -4,16 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
 const EditProfileModal = ({ isOpen, onClose }) => {
-    const { user, login } = useAuth(); // We might need to update the local user state after edit.
-    // login function might not be the right way to update user state usually, 
-    // but AuthContext likely has setUser or we can just fetch 'me' again?
-    // Looking at common patterns, maybe I should expose a `updateUser` from AuthContext or just rely on the API response to update local storage and state.
-    // Ideally AuthContext should provide a way to update the user object without full login.
-    // I'll check AuthContext in a moment. For now assume I can just reload or maybe AuthContext automatically checks 'me'. 
-    // Actually, if I update the token/user in localStorage, AuthContext might pick it up on refresh, or I need a setUser.
-    
-    // Let's implement the modal first.
-    
+    const { user, login } = useAuth();     
     const { addToast } = useToast();
     const [formData, setFormData] = useState({
         name: '',

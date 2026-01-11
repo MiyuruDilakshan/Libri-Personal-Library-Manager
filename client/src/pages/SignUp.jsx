@@ -2,13 +2,14 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import { useAuth } from "../context/AuthContext";
+import { useGoogleLogin } from '@react-oauth/google';
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { register, error: contextError } = useAuth();
+  const { register, googleLogin, error: contextError } = useAuth();
   const [localError, setLocalError] = useState(null);
   const navigate = useNavigate();
 
@@ -26,6 +27,21 @@ const SignUp = () => {
         setLocalError(result.message);
     }
   };
+
+  const handleGoogleSuccess = async (tokenResponse) => {
+    setLocalError(null);
+    const result = await googleLogin(tokenResponse.access_token);
+    if (result.success) {
+      navigate('/');
+    } else {
+      setLocalError(result.message);
+    }
+  };
+
+  const loginWithGoogle = useGoogleLogin({
+    onSuccess: handleGoogleSuccess,
+    onError: (error) => setLocalError("Google Login Failed"),
+  });
 
   return (
     <div className="bg-surface-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display h-screen w-full flex flex-col overflow-hidden">
@@ -83,7 +99,11 @@ const SignUp = () => {
           </div>
 
           {/* GOOGLE LOGIN */}
-            <button className="gsi-material-button w-full flex justify-center mx-auto">
+            <button
+                type="button" 
+                onClick={() => loginWithGoogle()}
+                className="gsi-material-button w-full flex justify-center mx-auto"
+            >
             <div className="gsi-material-button-state"></div>
             <div className="gsi-material-button-content-wrapper">
               <div className="gsi-material-button-icon">

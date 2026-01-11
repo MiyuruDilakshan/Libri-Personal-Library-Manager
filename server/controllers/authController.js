@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const asyncHandler = require('express-async-handler');
+const axios = require('axios');
 const User = require('../models/User');
 
 // @desc    Register new user
@@ -116,6 +117,60 @@ const updateProfile = asyncHandler(async (req, res) => {
     }
 });
 
+// @desc    Google Login/Signup
+// @route   POST /api/auth/google
+// @access  Public
+const googleLogin = asyncHandler(async (req, res) => {
+    const { accessToken } = req.body;
+
+    // Get user info from Google
+    const googleResponse = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    const { name, email, sub } = googleResponse.data;
+
+    if (!email) {
+        res.status(400);
+        throw new Error('Google account does not have an email');
+    }
+
+    // Check if user exists
+    let user = await User.findOne({ email });
+
+    if (user) {
+        // User exists - Log them in
+        res.json({
+            _id: user.id,
+            name: user.name,
+            email: user.email,
+            token: generateToken(user._id)
+        });
+    } else {
+        // User does not exist - Register them
+        // Create a random password since they are using Google
+        const randomPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+        
+        user = await User.create({
+            name,
+            email,
+            password: randomPassword
+        });
+
+        if (user) {
+            res.status(201).json({
+                _id: user.id,
+                name: user.name,
+                email: user.email,
+                token: generateToken(user._id)
+            });
+        } else {
+            res.status(400);
+            throw new Error('Invalid user data received from Google');
+        }
+    }
+});
+
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, {
         expiresIn: '30d',
@@ -126,5 +181,6 @@ module.exports = {
     registerUser,
     loginUser,
     getMe,
-    updateProfile
+    updateProfile,
+    googleLogin
 };
