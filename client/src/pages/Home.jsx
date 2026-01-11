@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Header from '../components/Header';
 import axios from 'axios';
 
@@ -15,7 +15,11 @@ const Home = () => {
     const [isFreeEbook, setIsFreeEbook] = useState(false);
 
     const searchBooks = async (isNewSearch = true) => {
-        if (!query.trim()) return;
+        console.log(`[Frontend] searchBooks called. isNewSearch: ${isNewSearch}, Query: "${query}"`);
+        if (!query.trim()) {
+            console.warn('[Frontend] Empty query, aborting search.');
+            return;
+        }
 
         setLoading(true);
         setError(null);
@@ -24,15 +28,19 @@ const Home = () => {
             const index = isNewSearch ? 0 : startIndex;
             const filterParam = isFreeEbook ? 'free-ebooks' : undefined;
             
-            const response = await axios.get('http://localhost:5000/api/books/search', {
-                params: {
-                    q: query,
-                    startIndex: index,
-                    maxResults: 12, // Increased for better grid layout
-                    printType: printType,
-                    filter: filterParam
-                }
-            });
+            const params = {
+                q: query,
+                startIndex: index,
+                maxResults: 12,
+                printType: printType,
+                filter: filterParam
+            };
+            console.log('[Frontend] Sending request to backend:', params);
+
+            const response = await axios.get('http://localhost:5000/api/books/search', { params });
+            
+            console.log('[Frontend] Backend response received:', response.status);
+            console.log('[Frontend] Data items:', response.data.items?.length || 0);
 
             if (isNewSearch) {
                 setBooks(response.data.items || []);
@@ -43,7 +51,7 @@ const Home = () => {
             }
             setTotalItems(response.data.totalItems || 0);
         } catch (err) {
-            console.error(err);
+            console.error('[Frontend] Search Error:', err);
             setError('Failed to fetch books. Please try again.');
         } finally {
             setLoading(false);
