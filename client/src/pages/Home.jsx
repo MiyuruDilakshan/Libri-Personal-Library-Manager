@@ -3,6 +3,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/axiosInstance';
 
 const Home = () => {
     const { user } = useAuth();
@@ -120,13 +121,27 @@ const Home = () => {
         }
     };
 
-    const handleSaveBook = (book) => {
+    const handleSaveBook = async (book) => {
         if (!user) {
             alert("Please log in to save books to your library!");
             return;
         }
-        // In real backend integration, this would call API
-        alert(`Saved "${book.volumeInfo.title}" to your library!`);
+        
+        try {
+            const payload = {
+                googleBookId: book.id,
+                title: book.volumeInfo.title,
+                authors: book.volumeInfo.authors || [],
+                thumbnail: book.volumeInfo.imageLinks?.thumbnail || ''
+            };
+            
+            await api.post('/library', payload);
+            alert(`Saved "${book.volumeInfo.title}" to your library!`);
+        } catch (err) {
+            console.error(err);
+            const msg = err.response?.data?.message || 'Failed to save book (it might already be in your library).';
+            alert(msg);
+        }
     };
 
     return (

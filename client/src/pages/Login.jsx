@@ -6,14 +6,20 @@ import { useAuth } from "../context/AuthContext";
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
-  const { login } = useAuth();
+  const [password, setPassword] = useState('');
+  const { login, error: contextError } = useAuth(); // Assuming context provides error
+  const [localError, setLocalError] = useState(null);
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Simulate login
-    login({ email });
-    navigate('/');
+    setLocalError(null);
+    const result = await login(email, password);
+    if (result.success) {
+      navigate('/');
+    } else {
+      setLocalError(result.message);
+    }
   };
 
   return (
@@ -94,6 +100,12 @@ const Login = () => {
             </div>
           </div>
 
+          {(localError || contextError) && (
+              <div className="p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+                  {localError || contextError}
+              </div>
+          )}
+
           {/* FORM */}
           <form className="space-y-4" onSubmit={handleLogin}>
             <div className="space-y-1">
@@ -126,6 +138,8 @@ const Login = () => {
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="block w-full pl-10 pr-10 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all sm:text-sm font-medium"
                 />
                 <button

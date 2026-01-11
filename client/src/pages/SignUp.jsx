@@ -1,9 +1,31 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
+import { useAuth } from "../context/AuthContext";
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { register, error: contextError } = useAuth();
+  const [localError, setLocalError] = useState(null);
+  const navigate = useNavigate();
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setLocalError(null);
+    if (password.length < 8) {
+        setLocalError("Password must be at least 8 characters.");
+        return;
+    }
+    const result = await register(name, email, password);
+    if (result.success) {
+        navigate('/');
+    } else {
+        setLocalError(result.message);
+    }
+  };
 
   return (
     <div className="bg-surface-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display h-screen w-full flex flex-col overflow-hidden">
@@ -90,8 +112,14 @@ const SignUp = () => {
             </div>
           </div>
 
+          {(localError || contextError) && (
+              <div className="p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+                  {localError || contextError}
+              </div>
+          )}
+
           {/* FORM */}
-          <form className="space-y-3">
+          <form className="space-y-3" onSubmit={handleRegister}>
             <div className="space-y-1">
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Full Name</label>
                 <div className="relative group">
@@ -101,6 +129,8 @@ const SignUp = () => {
                     <input
                     type="text"
                     placeholder="John Doe"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     className="block w-full pl-10 pr-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all sm:text-sm font-medium"
                     />
                 </div>
@@ -115,6 +145,8 @@ const SignUp = () => {
                     <input
                     type="email"
                     placeholder="name@company.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="block w-full pl-10 pr-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all sm:text-sm font-medium"
                     />
                 </div>
@@ -129,6 +161,8 @@ const SignUp = () => {
                     <input
                     type={showPassword ? "text" : "password"}
                     placeholder="Create a password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     className="block w-full pl-10 pr-10 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all sm:text-sm font-medium"
                     />
                      <button

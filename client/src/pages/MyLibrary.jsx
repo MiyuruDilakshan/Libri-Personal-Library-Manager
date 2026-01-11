@@ -6,9 +6,10 @@ import EditBookModal from '../components/EditBookModal';
 import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
+import api from '../services/axiosInstance';
 
 const MyLibrary = () => {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const navigate = useNavigate();
     const [libraryBooks, setLibraryBooks] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -19,61 +20,48 @@ const MyLibrary = () => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedBook, setSelectedBook] = useState(null);
 
-    // Mock Data Fetching
+    // Filter books based on active tab
+    const filteredBooks = activeTab === 'All' 
+        ? libraryBooks 
+        : libraryBooks.filter(book => book.userData.status === activeTab);
+
     useEffect(() => {
-        if (!user) {
-            // If strictly protected, navigate('/login');
-            // For UI demo, maybe just return;
+        if (!authLoading && !user) {
+            navigate('/login');
             return;
         }
 
-        // Simulate API delay
-        setTimeout(() => {
-            const mockLibrary = [
-                {
-                    id: '1',
+        const fetchBooks = async () => {
+            if (!user) return;
+            try {
+                const response = await api.get('/library');
+                // Transform backend data to frontend structure
+                const formattedBooks = response.data.map(book => ({
+                    id: book._id,
                     volumeInfo: {
-                        title: 'The Great Gatsby',
-                        authors: ['F. Scott Fitzgerald'],
-                        imageLinks: { thumbnail: 'https://books.google.com/books/content?id=iO5pApw2JycC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api' }
+                        title: book.title,
+                        authors: book.authors,
+                        imageLinks: { thumbnail: book.thumbnail },
+                        industryIdentifiers: [{ identifier: book.googleBookId }] // Keep google ID handy
                     },
                     userData: {
-                        status: 'Completed',
-                        userRating: 5,
-                        userReview: 'A mesmerizing tale of obsession and decadence. Fitzgerald’s prose is unmatched.'
+                        status: book.status,
+                        userRating: book.userRating,
+                        userReview: book.userReview
                     }
-                },
-                {
-                    id: '2',
-                    volumeInfo: {
-                        title: 'Dune',
-                        authors: ['Frank Herbert'],
-                        imageLinks: { thumbnail: 'https://books.google.com/books/content?id=B1hSG45JCX4C&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api' }
-                    },
-                    userData: {
-                        status: 'Reading',
-                        userRating: 0,
-                        userReview: ''
-                    }
-                },
-                {
-                    id: '3',
-                    volumeInfo: {
-                        title: 'Atomic Habits',
-                        authors: ['James Clear'],
-                        imageLinks: { thumbnail: 'https://books.google.com/books/content?id=XfFvDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api' }
-                    },
-                    userData: {
-                        status: 'Want to Read',
-                        userRating: 0,
-                        userReview: ''
-                    }
-                }
-            ];
-            setLibraryBooks(mockLibrary);
-            setLoading(false);
-        }, 800);
-    }, [user]);
+                }));
+                setLibraryBooks(formattedBooks);
+            } catch (error) {
+                console.error("Failed to fetch library", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (user) {
+            fetchBooks();
+        }
+    }, [user, authLoading, navigate]);
 
     // Handlers
     const handleEditClick = (book) => {
@@ -86,22 +74,60 @@ const MyLibrary = () => {
         setIsDeleteModalOpen(true);
     };
 
-    const handleSaveEdit = (updatedBook) => {
-        setLibraryBooks(prev => prev.map(b => b.id === updatedBook.id ? updatedBook : b));
-        // In real app, API call here
+    const handleSaveEdit = async (updatedBookData) => {
+        // updatedBookData comes from the modal, likely structure is merged or specific fields
+        // The modal probably passes back the whole book object structure or just the changed userData
+        
+        // We need to extract the ID and the fields to update (status, rating, review)
+        if (!selectedBook) return;
+
+        try {
+            const updatePayload = {
+                status: updatedBookData.userData.status,
+                userRating: updatedBookData.userData.userRating,
+                userReview: updatedBookData.userData.userReview
+            };
+            
+            const response = await api.put(`/library/${selectedBook.id}`, updatePayload);
+            const updatedBook = response.data;
+            
+             // Re-map the single updated book to frontend structure
+             const formattedUpdatedBook = {
+                id: updatedBook._id,
+                volumeInfo: {
+                    title: updatedBook.title,
+                    authors: updatedBook.authors,
+                    imageLinks: { thumbnail: updatedBook.thumbnail },
+                    industryIdentifiers: [{ identifier: updatedBook.googleBookId }]
+                },
+                userData: {
+                    status: updatedBook.status,
+                    userRating: updatedBook.userRating,
+                    userReview: updatedBook.userReview
+                }
+            };
+
+            setLibraryBooks(prev => prev.map(b => b.id === formattedUpdatedBook.id ? formattedUpdatedBook : b));
+            setIsEditModalOpen(false);
+            setSelectedBook(null);
+        } catch (error) {
+            console.error("Failed to update book", error);
+            alert("Failed to update book");
+        }
     };
 
-    const handleConfirmDelete = () => {
-        setLibraryBooks(prev => prev.filter(b => b.id !== selectedBook.id));
-        setIsDeleteModalOpen(false);
-        setSelectedBook(null);
-        // In real app, API call here
+    const handleConfirmDelete = async () => {
+        if (!selectedBook) return;
+        try {
+            await api.delete(`/library/${selectedBook.id}`);
+            setLibraryBooks(prev => prev.filter(b => b.id !== selectedBook.id));
+            setIsDeleteModalOpen(false);
+            setSelectedBook(null);
+        } catch (error) {
+            console.error("Failed to delete book", error);
+            alert("Failed to delete book");
+        }
     };
-
-    // Filter Logic
-    const filteredBooks = activeTab === 'All' 
-        ? libraryBooks 
-        : libraryBooks.filter(book => book.userData.status === activeTab);
 
     if (!user) {
         return (
