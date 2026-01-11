@@ -57,13 +57,6 @@ const Header = () => {
         }
     };
 
-    // Helper for text colors
-    const getTextColor = (baseColor) => {
-        if (isTransparent) return 'text-white';
-        if (isAuthPage && !isScrolled) return 'text-slate-900 dark:text-white lg:text-white';
-        return baseColor; 
-    };
-
     return (
         <header className={`fixed top-0 z-50 w-full transition-all duration-300 ${isScrolled ? 'bg-background-light/50 dark:bg-background-dark/70 backdrop-blur-md border-b border-border-light dark:border-border-dark shadow-md' : 'bg-transparent border-b border-transparent'}`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
