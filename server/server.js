@@ -30,9 +30,8 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'Server is running' });
 });
 
-// Example route for books
-// app.use('/api/books', require('./routes/books'));
-// app.use('/api/auth', require('./routes/auth'));
+// Routes
+app.use('/api/books', require('./routes/publicBooks'));
 
 const PORT = process.env.PORT || 5000;
 
