@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Header from '../components/Header';
+import Footer from '../components/Footer';
 import axios from 'axios';
 
 const Home = () => {
@@ -8,7 +9,8 @@ const Home = () => {
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [startIndex, setStartIndex] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(12);
     const [totalItems, setTotalItems] = useState(0);
     const [viewMode, setViewMode] = useState('trending'); // 'trending' | 'search'
     
@@ -19,9 +21,9 @@ const Home = () => {
 
     // Refs
     const resultsRef = useRef(null);
-    const observerTarget = useRef(null);
+    // Removed observerTarget ref
 
-    const fetchBooks = useCallback(async (searchQuery, isNewSearch = true, currentStartIndex = 0, currentPrintType, currentIsFreeEbook, currentOrderBy = 'relevance') => {
+    const fetchBooks = useCallback(async (searchQuery, pageC = 1, currentPrintType, currentIsFreeEbook, currentOrderBy = 'relevance', shouldScroll = false) => {
         if (!searchQuery && !searchQuery.trim()) return;
 
         setLoading(true);
@@ -29,33 +31,28 @@ const Home = () => {
 
         try {
             const filterParam = currentIsFreeEbook ? 'free-ebooks' : undefined;
-            
+            const startIndexVal = (pageC - 1) * itemsPerPage;
+
             const params = {
                 q: searchQuery,
-                startIndex: currentStartIndex,
-                maxResults: 12,
+                startIndex: startIndexVal,
+                maxResults: itemsPerPage,
                 printType: currentPrintType,
                 filter: filterParam,
                 orderBy: currentOrderBy
             };
             
-            // console.log('[Frontend] Fetching:', params);
             const response = await axios.get('http://localhost:5000/api/books/search', { params });
             const newBooks = response.data.items || [];
             
-            if (isNewSearch) {
-                setBooks(newBooks);
-                setStartIndex(12);
-                if (viewMode === 'search' && newBooks.length > 0) {
-                     setTimeout(() => {
-                        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                     }, 100);
-                }
-            } else {
-                setBooks(prev => [...prev, ...newBooks]);
-                setStartIndex(prev => prev + 12);
-            }
+            setBooks(newBooks); // Always replace items for pagination
             setTotalItems(response.data.totalItems || 0);
+            
+            if (shouldScroll) {
+                 setTimeout(() => {
+                    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                 }, 10);
+            }
 
         } catch (err) {
             console.error('[Frontend] Search Error:', err);
@@ -63,7 +60,7 @@ const Home = () => {
         } finally {
             setLoading(false);
         }
-    }, [viewMode]);
+    }, [itemsPerPage]);
 
     // Initial Trending Load
     useEffect(() => {
@@ -71,43 +68,21 @@ const Home = () => {
             setViewMode('trending');
             setActiveQuery('subject:fiction'); // Internal query for trending
             setOrderBy('newest');
+            setCurrentPage(1);
             // Fetch trending (recent fiction is a good proxy for trending content)
-            await fetchBooks('subject:fiction', true, 0, 'all', false, 'newest');
+            await fetchBooks('subject:fiction', 1, 'all', false, 'newest', false);
         };
         loadTrending();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Instant Filter Apply
+    // Instant Filter Apply & Pagination
     useEffect(() => {
         if (activeQuery && (viewMode === 'search' || viewMode === 'trending')) {
-            fetchBooks(activeQuery, true, 0, printType, isFreeEbook, orderBy);
+            const shouldScroll = viewMode === 'search';
+            fetchBooks(activeQuery, currentPage, printType, isFreeEbook, orderBy, shouldScroll);
         }
-    }, [printType, isFreeEbook, activeQuery, viewMode, fetchBooks, orderBy]);
-
-    // Infinite Scroll Observer
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            entries => {
-                if (entries[0].isIntersecting && !loading && viewMode === 'search' && books.length < totalItems) {
-                    fetchBooks(activeQuery, false, startIndex, printType, isFreeEbook, orderBy);
-                }
-            },
-            { threshold: 0.1 }
-        );
-
-        const currentTarget = observerTarget.current;
-        if (currentTarget) {
-            observer.observe(currentTarget);
-        }
-
-        return () => {
-            if (currentTarget) {
-                observer.unobserve(currentTarget);
-            }
-        };
-    }, [loading, viewMode, books.length, totalItems, activeQuery, startIndex, printType, isFreeEbook, fetchBooks, orderBy]);
-
+    }, [printType, isFreeEbook, activeQuery, viewMode, fetchBooks, orderBy, currentPage]);
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
@@ -115,17 +90,32 @@ const Home = () => {
         setViewMode('search');
         setActiveQuery(query);
         setOrderBy('relevance');
-        fetchBooks(query, true, 0, printType, isFreeEbook, 'relevance');
+        setCurrentPage(1);
+        // fetchBooks triggered by useEffect when activeQuery/currentPage changes
     };
 
     const handleCategoryClick = (displayName, apiQuery, sortOrder = 'relevance') => {
-        setQuery(displayName); // Update search bar with user-friendly name
-        setActiveQuery(apiQuery); // Store actual API query
+        setQuery(displayName); 
+        setActiveQuery(apiQuery); 
         setViewMode(displayName === 'Trending' ? 'trending' : 'search');
         setPrintType('all');
         setOrderBy(sortOrder);
-        // If it's trending, we might want 'newest', for others 'relevance'
-        fetchBooks(apiQuery, true, 0, 'all', isFreeEbook, sortOrder);
+        setCurrentPage(1);
+    };
+    
+    const resetFilters = () => {
+        setPrintType('all');
+        setIsFreeEbook(false);
+        setOrderBy('relevance');
+        setCurrentPage(1);
+    };
+
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= Math.ceil(totalItems / itemsPerPage)) {
+            setCurrentPage(newPage);
+            // Scroll to top of results
+            resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     };
 
     return (
@@ -133,21 +123,31 @@ const Home = () => {
             <Header />
             <main className="flex-grow flex flex-col">
                 {/* Hero Section */}
-                <div className="relative w-full bg-background-light dark:bg-background-dark overflow-hidden">
-                    <div className="absolute inset-0 opacity-10 dark:opacity-5 pointer-events-none" style={{ backgroundImage: "radial-gradient(#3e7879 1px, transparent 1px)", backgroundSize: "24px 24px" }}></div>
+                <div className="relative w-full overflow-hidden bg-slate-900">
+                    {/* Background Image & Overlay */}
+                    <div className="absolute inset-0 z-0">
+                         <img 
+                            src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da?q=80&w=2670&auto=format&fit=crop" 
+                            alt="Library Background" 
+                            className="w-full h-full object-cover blur-[2px] opacity-80"
+                        />
+                        {/* Gradient: Dark around text, fading to the page background at bottom */}
+                        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/90 via-slate-900/70 to-background-light dark:to-background-dark"></div>
+                    </div>
+
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-12 lg:pt-36 lg:pb-20 relative z-10">
                         <div className="flex flex-col items-center text-center max-w-3xl mx-auto space-y-8">
                             <div className="space-y-4">
-                                <h2 className="text-4xl md:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
-                                    Curate Your <span className="text-primary">Intellectual</span> Journey
+                                <h2 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight leading-tight drop-shadow-lg">
+                                    Curate Your <span className="text-emerald-400">Intellectual</span> Journey
                                 </h2>
-                                <p className="text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+                                <p className="text-lg md:text-xl text-slate-200 max-w-2xl mx-auto drop-shadow-md">
                                     Manage your personal library, track your reading habits, and discover new favorites with data powered by Google Books.
                                 </p>
                             </div>
                             
-                            <form onSubmit={handleSearchSubmit} className="w-full max-w-2xl relative shadow-xl shadow-primary/5 rounded-xl">
-                                <div className="flex items-center w-full h-14 bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent transition-all overflow-hidden">
+                            <form onSubmit={handleSearchSubmit} className="w-full max-w-2xl relative shadow-2xl shadow-black/20 rounded-xl">
+                                <div className="flex items-center w-full h-14 bg-white/95 dark:bg-surface-dark/95 backdrop-blur rounded-xl border border-white/20 dark:border-border-dark focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent transition-all overflow-hidden">
                                     <div className="pl-4 text-slate-400">
                                         <span className="material-symbols-outlined">search</span>
                                     </div>
@@ -170,10 +170,10 @@ const Home = () => {
                                     <button 
                                         key={tag}
                                         onClick={() => handleCategoryClick(tag, `subject:${tag.toLowerCase()}`, 'relevance')}
-                                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                                        className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all ${
                                             query === tag 
                                             ? 'bg-primary text-white shadow-md' 
-                                            : 'bg-surface-light dark:bg-surface-dark border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-primary hover:text-primary'
+                                            : 'bg-white text-slate-900 shadow-sm hover:bg-slate-100 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 backdrop-blur-sm border border-transparent dark:border-white/20'
                                         }`}
                                     >
                                         {tag}
@@ -192,13 +192,47 @@ const Home = () => {
                             <div className="flex items-center justify-between">
                                 <h3 className="font-bold text-lg text-slate-900 dark:text-white tracking-tight">Filters</h3>
                                 <button 
-                                    onClick={() => { setPrintType('all'); setIsFreeEbook(false); }}
+                                    onClick={resetFilters}
                                     className="text-xs font-semibold text-primary hover:text-primary-dark transition-colors uppercase tracking-wider"
                                 >
                                     Reset
                                 </button>
                             </div>
-                            
+
+                            {/* Filter Group: Sort By */}
+                            <div className="border-b border-border-light dark:border-border-dark pb-3">
+                                <details className="group" open>
+                                    <summary className="flex cursor-pointer items-center justify-between font-bold text-sm uppercase tracking-wider text-slate-500 dark:text-slate-400 list-none mb-2 hover:text-slate-900 dark:hover:text-white transition-colors">
+                                        <span>Sort By</span>
+                                        <span className="transition-transform duration-300 group-open:rotate-180">
+                                            <span className="material-symbols-outlined text-lg">expand_more</span>
+                                        </span>
+                                    </summary>
+                                    <div className="space-y-2 pl-1">
+                                        <label className="flex items-center gap-3 cursor-pointer group/item">
+                                            <input 
+                                                className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-700 dark:border-slate-600 focus:ring-offset-0" 
+                                                type="radio" 
+                                                name="orderBy"
+                                                checked={orderBy === 'relevance'}
+                                                onChange={() => setOrderBy('relevance')}
+                                            />
+                                            <span className="text-sm text-slate-600 dark:text-slate-300 group-hover/item:text-primary transition-colors">Relevance</span>
+                                        </label>
+                                        <label className="flex items-center gap-3 cursor-pointer group/item">
+                                            <input 
+                                                className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary dark:bg-slate-700 dark:border-slate-600 focus:ring-offset-0" 
+                                                type="radio" 
+                                                name="orderBy"
+                                                checked={orderBy === 'newest'}
+                                                onChange={() => setOrderBy('newest')}
+                                            />
+                                            <span className="text-sm text-slate-600 dark:text-slate-300 group-hover/item:text-primary transition-colors">Newest</span>
+                                        </label>
+                                    </div>
+                                </details>
+                            </div>
+
                             {/* Filter Group: Print Type */}
                             <div className="border-b border-border-light dark:border-border-dark pb-3">
                                 <details className="group" open>
@@ -295,7 +329,14 @@ const Home = () => {
                         {!loading && !error && books.length === 0 && viewMode === 'search' && query && (
                              <div className="text-center py-12 text-slate-500">
                                 <span className="material-symbols-outlined text-6xl mb-4 opacity-20">search_off</span>
-                                <p className="text-lg">No books found matching "{query}"</p>
+                                <p className="text-lg">
+                                    {isFreeEbook 
+                                        ? `No free e-books found for "${query}"` 
+                                        : printType !== 'all' 
+                                            ? `No ${printType} found for "${query}"`
+                                            : `No books found matching "${query}"`
+                                    }
+                                </p>
                             </div>
                         )}
 
@@ -359,15 +400,30 @@ const Home = () => {
                             })}
                         </div>
                         
-                        {/* Sentinel for Infinite Scroll - Only valid in search mode */}
-                        {viewMode === 'search' && books.length > 0 && books.length < totalItems && (
-                            <div ref={observerTarget} className="h-20 w-full flex items-center justify-center mt-8">
-                                {loading && (
-                                     <div className="flex items-center gap-2 text-slate-500">
-                                        <span className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full"></span>
-                                        <span>Loading more...</span>
-                                    </div>
-                                )}
+                        {/* Pagination - Only valid in search mode */}
+                        {viewMode === 'search' && totalItems > 0 && (
+                            <div className="flex justify-center items-center gap-4 mt-12 mb-8">
+                                <button
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage === 1 || loading}
+                                    className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 dark:text-slate-300 transition-colors font-medium text-sm flex items-center gap-2"
+                                >
+                                    <span className="material-symbols-outlined text-sm">arrow_back</span>
+                                    Previous
+                                </button>
+                                
+                                <span className="text-slate-600 dark:text-slate-400 font-medium text-sm">
+                                    Page {currentPage} of {Math.ceil(totalItems / itemsPerPage)}
+                                </span>
+                                
+                                <button
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage >= Math.ceil(totalItems / itemsPerPage) || loading}
+                                    className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 dark:text-slate-300 transition-colors font-medium text-sm flex items-center gap-2"
+                                >
+                                    Next
+                                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                                </button>
                             </div>
                         )}
                         
@@ -379,6 +435,8 @@ const Home = () => {
                         )}
                     </div>
                 </div>
+
+                <Footer />
             </main>
         </div>
     );

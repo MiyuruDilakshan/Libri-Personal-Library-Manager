@@ -8,6 +8,9 @@ const Header = () => {
     
     // Check if we are on an auth page (Login or Signup)
     const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
+    const isHomePage = location.pathname === '/';
+    // Only Home page uses fully transparent/white header (for Hero)
+    const isTransparent = !isScrolled && isHomePage;
 
     useEffect(() => {
         const handleScroll = () => {
@@ -16,7 +19,6 @@ const Header = () => {
 
         // Theme Initialization - Default to Dark if no preference
         const savedTheme = localStorage.getItem('theme');
-        // If 'dark', or NO saved theme (default), use dark mode
         if (savedTheme === 'dark' || !savedTheme) {
             setIsDark(true);
             document.documentElement.classList.add('dark');
@@ -42,7 +44,7 @@ const Header = () => {
     };
 
     return (
-        <header className={`fixed top-0 z-50 w-full transition-all duration-300 ${isScrolled ? 'bg-background-light/70 dark:bg-background-dark/70 backdrop-blur-md border-b border-border-light dark:border-border-dark shadow-md' : 'bg-transparent border-b border-transparent'}`}>
+        <header className={`fixed top-0 z-50 w-full transition-all duration-300 ${isScrolled ? 'bg-background-light/50 dark:bg-background-dark/70 backdrop-blur-md border-b border-border-light dark:border-border-dark shadow-md' : 'bg-transparent border-b border-transparent'}`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16 gap-4">
                     {/* Logo */}
@@ -52,11 +54,17 @@ const Header = () => {
                         </div>
                         {/* 
                             Logo Text Logic:
-                            - Standard: text-slate-900 (Light Mode) / text-white (Dark Mode)
-                            - Auth Pages (Desktop): Always text-white due to dark image background
-                            - Auth Pages (Mobile): Follows standard theme (Light bg -> Dark text)
+                            - Home Hero: Always White.
+                            - Auth Pages (Unscrolled): 
+                                - Desktop: White (on dark image).
+                                - Mobile: Standard (on light background).
+                            - Default: Standard Theme Colors.
                          */}
-                        <h1 className={`text-xl font-bold tracking-tight ${isAuthPage ? 'text-slate-900 dark:text-white lg:text-white' : 'text-slate-900 dark:text-white'}`}>
+                        <h1 className={`text-xl font-bold tracking-tight ${
+                            isTransparent ? 'text-white' : 
+                            (isAuthPage && !isScrolled) ? 'text-slate-900 dark:text-white lg:text-white' : 
+                            'text-slate-900 dark:text-white'
+                        }`}>
                             Libri
                         </h1>
                     </Link>
@@ -66,7 +74,7 @@ const Header = () => {
                         {/* Theme Toggle */}
                         <button 
                             onClick={toggleTheme}
-                            className="p-2 text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+                            className={`p-2 transition-colors rounded-full ${isTransparent ? 'text-white hover:bg-white/20' : 'text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                             title={isDark ? "Switch to light mode" : "Switch to dark mode"}
                         >
                             <span className="material-symbols-outlined text-[20px]">
@@ -76,7 +84,7 @@ const Header = () => {
                         
                         {/* Login Button - Hide if on Login page */}
                         {location.pathname !== '/login' && (
-                            <Link className="text-sm font-semibold text-slate-600 hover:text-primary dark:text-slate-300 dark:hover:text-white transition-colors" to="/login">
+                            <Link className={`text-sm font-semibold transition-colors ${isTransparent ? 'text-white hover:text-white/80' : 'text-slate-600 hover:text-primary dark:text-slate-300 dark:hover:text-white'}`} to="/login">
                                 Log In
                             </Link>
                         )}
