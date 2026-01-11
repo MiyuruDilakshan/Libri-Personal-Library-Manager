@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 const Header = () => {
     const [isScrolled, setIsScrolled] = useState(false);
@@ -17,12 +18,12 @@ const Header = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16 gap-4">
                     {/* Logo */}
-                    <div className="flex items-center gap-2 flex-shrink-0 cursor-pointer">
+                    <Link to="/" className="flex items-center gap-2 flex-shrink-0 cursor-pointer">
                         <div className="text-primary">
                             <span className="material-symbols-outlined text-3xl">local_library</span>
                         </div>
                         <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Libri</h1>
-                    </div>
+                    </Link>
                     
                     {/* Right Actions */}
                     <div className="flex items-center gap-2 sm:gap-4">
@@ -31,9 +32,9 @@ const Header = () => {
                             <span className="material-symbols-outlined text-[20px]">dark_mode</span>
                         </button>
                         {/* login,signup */}
-                        <a className="hidden sm:block text-sm font-semibold text-slate-600 hover:text-primary dark:text-slate-300 dark:hover:text-white transition-colors" href="/login">Log In</a>
-                        <a className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-bold rounded-lg text-white bg-primary hover:bg-primary-dark transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary" 
-                        href="/SignUp"> Sign Up </a>
+                        <Link className="hidden sm:block text-sm font-semibold text-slate-600 hover:text-primary dark:text-slate-300 dark:hover:text-white transition-colors" to="/login">Log In</Link>
+                        <Link className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-bold rounded-lg text-white bg-primary hover:bg-primary-dark transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary" 
+                        to="/signup"> Sign Up </Link>
                     </div>
                 </div>
             </div>
