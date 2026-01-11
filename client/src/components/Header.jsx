@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 const Header = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isDark, setIsDark] = useState(false);
+    const location = useLocation();
+    
+    // Check if we are on an auth page (Login or Signup)
+    const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
 
     useEffect(() => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 0);
         };
 
-        // Theme Initialization
+        // Theme Initialization - Default to Dark if no preference
         const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        // If 'dark', or NO saved theme (default), use dark mode
+        if (savedTheme === 'dark' || !savedTheme) {
             setIsDark(true);
             document.documentElement.classList.add('dark');
         } else {
@@ -45,7 +50,15 @@ const Header = () => {
                         <div className="text-primary">
                             <span className="material-symbols-outlined text-3xl">local_library</span>
                         </div>
-                        <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Libri</h1>
+                        {/* 
+                            Logo Text Logic:
+                            - Standard: text-slate-900 (Light Mode) / text-white (Dark Mode)
+                            - Auth Pages (Desktop): Always text-white due to dark image background
+                            - Auth Pages (Mobile): Follows standard theme (Light bg -> Dark text)
+                         */}
+                        <h1 className={`text-xl font-bold tracking-tight ${isAuthPage ? 'text-slate-900 dark:text-white lg:text-white' : 'text-slate-900 dark:text-white'}`}>
+                            Libri
+                        </h1>
                     </Link>
                     
                     {/* Right Actions */}
@@ -60,10 +73,20 @@ const Header = () => {
                                 {isDark ? 'light_mode' : 'dark_mode'}
                             </span>
                         </button>
-                        {/* login,signup */}
-                        <Link className="text-sm font-semibold text-slate-600 hover:text-primary dark:text-slate-300 dark:hover:text-white transition-colors" to="/login">Log In</Link>
-                        <Link className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-bold rounded-lg text-white bg-primary hover:bg-primary-dark transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary" 
-                        to="/signup"> Sign Up </Link>
+                        
+                        {/* Login Button - Hide if on Login page */}
+                        {location.pathname !== '/login' && (
+                            <Link className="text-sm font-semibold text-slate-600 hover:text-primary dark:text-slate-300 dark:hover:text-white transition-colors" to="/login">
+                                Log In
+                            </Link>
+                        )}
+                        
+                        {/* Sign Up Button - Hide if on Signup page */}
+                        {location.pathname !== '/signup' && (
+                            <Link className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-bold rounded-lg text-white bg-primary hover:bg-primary-dark transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary" to="/signup"> 
+                                Sign Up 
+                            </Link>
+                        )}
                     </div>
                 </div>
             </div>

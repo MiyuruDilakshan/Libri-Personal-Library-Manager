@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import Header from "../components/Header";
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -7,30 +8,7 @@ const SignUp = () => {
   return (
     <div className="bg-surface-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display h-screen w-full flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="absolute top-0 z-50 w-full">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 gap-4">
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-2 flex-shrink-0 cursor-pointer">
-              <div className="text-primary">
-                <span className="material-symbols-outlined text-3xl">local_library</span>
-              </div>
-              <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Libri</h1>
-            </Link>
-            
-            {/* Right Actions */}
-            <div className="flex items-center gap-2 sm:gap-4">
-              {/* Theme Toggle */}
-              <button className="p-2 text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-slate-800">
-                <span className="material-symbols-outlined text-[20px]">dark_mode</span>
-              </button>
-              {/* Login Button */}
-              <Link className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-bold rounded-lg text-white bg-primary hover:bg-primary-dark transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary" 
-              to="/login">Log In</Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <div className="flex flex-1 overflow-hidden">
 
