@@ -4,6 +4,7 @@ import axios from 'axios';
 
 const Home = () => {
     const [query, setQuery] = useState('');
+    const [activeQuery, setActiveQuery] = useState(''); // Stores the actual query used for API
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -14,12 +15,13 @@ const Home = () => {
     // Filters
     const [printType, setPrintType] = useState('all');
     const [isFreeEbook, setIsFreeEbook] = useState(false);
+    const [orderBy, setOrderBy] = useState('relevance');
 
     // Refs
     const resultsRef = useRef(null);
     const observerTarget = useRef(null);
 
-    const fetchBooks = useCallback(async (searchQuery, isNewSearch = true, currentStartIndex = 0, currentPrintType, currentIsFreeEbook) => {
+    const fetchBooks = useCallback(async (searchQuery, isNewSearch = true, currentStartIndex = 0, currentPrintType, currentIsFreeEbook, currentOrderBy = 'relevance') => {
         if (!searchQuery && !searchQuery.trim()) return;
 
         setLoading(true);
@@ -33,7 +35,8 @@ const Home = () => {
                 startIndex: currentStartIndex,
                 maxResults: 12,
                 printType: currentPrintType,
-                filter: filterParam
+                filter: filterParam,
+                orderBy: currentOrderBy
             };
             
             // console.log('[Frontend] Fetching:', params);
@@ -43,9 +46,7 @@ const Home = () => {
             if (isNewSearch) {
                 setBooks(newBooks);
                 setStartIndex(12);
-                // Scroll to results only if it's an active search (not initial trending load)
                 if (viewMode === 'search' && newBooks.length > 0) {
-                     // We use a timeout to let the DOM render the results section first
                      setTimeout(() => {
                         resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                      }, 100);
@@ -66,12 +67,12 @@ const Home = () => {
 
     // Initial Trending Load
     useEffect(() => {
-        // Fetch trending (using a generic "trending" or "subject:fiction" query sorted by newest if possible, 
-        // but Google Books API relies on 'orderBy' parameter. Let's just search for a popular topic)
         const loadTrending = async () => {
             setViewMode('trending');
-            // Using a broad query for trending/popular
-            await fetchBooks('subject:fiction', true, 0, 'all', false);
+            setActiveQuery('subject:fiction'); // Internal query for trending
+            setOrderBy('newest');
+            // Fetch trending (recent fiction is a good proxy for trending content)
+            await fetchBooks('subject:fiction', true, 0, 'all', false, 'newest');
         };
         loadTrending();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -79,18 +80,17 @@ const Home = () => {
 
     // Instant Filter Apply
     useEffect(() => {
-        // Only trigger if we have an active search or are looking at results
-        if (query && viewMode === 'search') {
-            fetchBooks(query, true, 0, printType, isFreeEbook);
+        if (activeQuery && (viewMode === 'search' || viewMode === 'trending')) {
+            fetchBooks(activeQuery, true, 0, printType, isFreeEbook, orderBy);
         }
-    }, [printType, isFreeEbook, query, viewMode, fetchBooks]);
+    }, [printType, isFreeEbook, activeQuery, viewMode, fetchBooks, orderBy]);
 
     // Infinite Scroll Observer
     useEffect(() => {
         const observer = new IntersectionObserver(
             entries => {
                 if (entries[0].isIntersecting && !loading && viewMode === 'search' && books.length < totalItems) {
-                    fetchBooks(query, false, startIndex, printType, isFreeEbook);
+                    fetchBooks(activeQuery, false, startIndex, printType, isFreeEbook, orderBy);
                 }
             },
             { threshold: 0.1 }
@@ -106,21 +106,26 @@ const Home = () => {
                 observer.unobserve(currentTarget);
             }
         };
-    }, [loading, viewMode, books.length, totalItems, query, startIndex, printType, isFreeEbook, fetchBooks]);
+    }, [loading, viewMode, books.length, totalItems, activeQuery, startIndex, printType, isFreeEbook, fetchBooks, orderBy]);
 
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         if (!query.trim()) return;
-        setViewMode('search'); // Switch to search mode
-        fetchBooks(query, true, 0, printType, isFreeEbook);
+        setViewMode('search');
+        setActiveQuery(query);
+        setOrderBy('relevance');
+        fetchBooks(query, true, 0, printType, isFreeEbook, 'relevance');
     };
 
-    const handleCategoryClick = (category) => {
-        setQuery(category); // Update search bar
-        setViewMode('search');
-        setPrintType('all'); // Reset filters optionally
-        fetchBooks(category, true, 0, 'all', isFreeEbook);
+    const handleCategoryClick = (displayName, apiQuery, sortOrder = 'relevance') => {
+        setQuery(displayName); // Update search bar with user-friendly name
+        setActiveQuery(apiQuery); // Store actual API query
+        setViewMode(displayName === 'Trending' ? 'trending' : 'search');
+        setPrintType('all');
+        setOrderBy(sortOrder);
+        // If it's trending, we might want 'newest', for others 'relevance'
+        fetchBooks(apiQuery, true, 0, 'all', isFreeEbook, sortOrder);
     };
 
     return (
@@ -161,24 +166,19 @@ const Home = () => {
 
                             {/* Quick Categories / Trending Buttons */}
                             <div className="flex flex-wrap justify-center gap-3">
-                                {['Trending', 'Classic', 'Romance', 'Technology', 'History'].map((tag) => {
-                                    // Map 'Trending' to a specific query if needed, strictly speaking trending isn't a category in the API without sorting, but 'most_popular' isn't a valid q without context. 
-                                    const searchQuery = tag === 'Trending' ? 'subject:fiction' : `subject:${tag.toLowerCase()}`;
-                                    
-                                    return (
-                                        <button 
-                                            key={tag}
-                                            onClick={() => handleCategoryClick(searchQuery)}
-                                            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                                                query === searchQuery 
-                                                ? 'bg-primary text-white shadow-md' 
-                                                : 'bg-surface-light dark:bg-surface-dark border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-primary hover:text-primary'
-                                            }`}
-                                        >
-                                            {tag}
-                                        </button>
-                                    );
-                                })}
+                                {['Fantasy', 'Sci-Fi', 'Classic', 'Romance', 'Technology', 'History'].map((tag) => (
+                                    <button 
+                                        key={tag}
+                                        onClick={() => handleCategoryClick(tag, `subject:${tag.toLowerCase()}`, 'relevance')}
+                                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                                            query === tag 
+                                            ? 'bg-primary text-white shadow-md' 
+                                            : 'bg-surface-light dark:bg-surface-dark border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-primary hover:text-primary'
+                                        }`}
+                                    >
+                                        {tag}
+                                    </button>
+                                ))}
                             </div>
                         </div>
                     </div>
@@ -299,7 +299,7 @@ const Home = () => {
                             </div>
                         )}
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                             {books.map((book, idx) => {
                                 const volumeInfo = book.volumeInfo;
                                 // Robust image handling: check varying sizes, force HTTPS, generic fallback

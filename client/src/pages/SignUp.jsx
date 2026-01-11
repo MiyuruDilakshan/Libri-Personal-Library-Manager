@@ -72,15 +72,9 @@ const SignUp = () => {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-4 bg-surface-light dark:bg-surface-dark overflow-y-auto">
         <div className="w-full max-w-[400px] space-y-4">
 
-          {/* MOBILE LOGO */}
-          <div className="lg:hidden flex items-center gap-2 text-primary mb-6">
-            <span className="material-symbols-outlined text-3xl">
-              local_library
-            </span>
-            <span className="text-xl font-bold">Libri</span>
-          </div>
+         
 
-          {/* HEADER */}
+          {/* HEADER */} 
           <div className="space-y-1 text-center lg:text-left">
             <h1 className="text-2xl font-bold">Create an account</h1>
             <p className="text-sm text-slate-500 dark:text-slate-400">
