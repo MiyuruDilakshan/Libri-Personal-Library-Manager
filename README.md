@@ -2,6 +2,8 @@
 
 A full-stack web application that allows users to search for books using the Google Books API. (MERN stack, RESTful API design, authentication, and state management)
 
+**Live Website**: [https://libri.miyuru.dev](https://libri.miyuru.dev)
+
 ## Features
 - **Public Search**: Search books via Google Books API (Title, Author, Keyword).
 - **Authentication**: Secure Signup/Login with JWT (stored in localStorage).
