@@ -13,11 +13,21 @@ A full-stack web application that allows users to search for books using the Goo
   - Automatic token attachment.
   - Global 401 error handling (auto-logout).
 
+## Bonus Features Implemented 
+- ✅ **Pagination**: Page numbers for search results with smooth navigation.
+- ✅ **Search Filters**: Filter by "Free E-books" and "Print Type" (books/magazines).
+- ✅ **Dark Mode**: Toggle to switch between light and dark themes.
+- ✅ **Unit Testing**: Comprehensive backend tests using Jest and Supertest.
+- ✅ **Demo**: Deployed version (Vercel) - [https://libri.miyuru.dev](https://libri.miyuru.dev)
+
 ## Tech Stack
-- **Frontend**: React (Hooks, Context API), Tailwind CSS, Axios.
-- **Backend**: Node.js, Express.js, MongoDB Atles.
+- **Frontend**: React , Tailwind CSS, Axios.
+- **Backend**: Node.js, Express.js.
+- **Database**: MongoDB Atles.
 - **Auth**: JWT, bcryptjs.
 - **Testing**: Jest, Supertest.
+- **Deploy**: Vercel
+
 
 ## Environment Variables
 
@@ -29,13 +39,21 @@ MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/libri
 JWT_SECRET=your_jwt_secret_key_here
 GOOGLE_BOOKS_API_KEY=your_google_books_api_key 
 NODE_ENV=development
+REACT_APP_API_URL=if_you_host
+GOOGLE_CLIENT_ID=your_google_client_id_if_you_want_google_auth
+GOOGLE_CLIENT_SECRET=your_google_client_secret_if_you_want_google_auth
 ```
 
 ## Installation & Running
 
 This project uses a split structure (separate `client` and `server` folders).
 
-### 1. Setup Backend
+### 1. Clone the project
+```bash
+https://github.com/MiyuruDilakshan/Libri-Personal-Library-Manager.git
+```
+
+### 2. Setup Backend
 ```bash
 cd server
 npm install
@@ -43,7 +61,7 @@ npm run dev
 # Server will start on http://localhost:5000
 ```
 
-### 2. Setup Frontend
+### 3. Setup Frontend
 Open a new terminal:
 ```bash
 cd client
