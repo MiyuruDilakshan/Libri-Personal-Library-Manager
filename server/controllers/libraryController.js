@@ -16,7 +16,7 @@ const addBook = asyncHandler(async (req, res) => {
     console.log("AddBook Request Body:", req.body);
     console.log("AddBook User:", req.user._id);
 
-    const { googleBookId, title, authors, thumbnail } = req.body;
+    const { googleBookId, title, authors, thumbnail, previewLink } = req.body;
 
     if (!googleBookId || !title) {
         res.status(400);
@@ -37,6 +37,7 @@ const addBook = asyncHandler(async (req, res) => {
         title,
         authors,
         thumbnail,
+        previewLink,
         status: 'Want to Read'
     });
     

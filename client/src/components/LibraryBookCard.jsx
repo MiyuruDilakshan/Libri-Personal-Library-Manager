@@ -1,7 +1,7 @@
 import React from 'react';
 
 const LibraryBookCard = ({ book, onEdit, onDelete, onClick }) => {
-    const { title, authors, imageLinks } = book.volumeInfo || {};
+    const { title, authors, imageLinks, previewLink } = book.volumeInfo || {};
     const { status, userReview, userRating } = book.userData || {};
 
     const getStatusColor = (status) => {
@@ -41,6 +41,18 @@ const LibraryBookCard = ({ book, onEdit, onDelete, onClick }) => {
                             {title}
                         </h3>
                         <div className="flex items-center gap-1">
+                            {previewLink && (
+                                <a 
+                                    href={previewLink} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors"
+                                    title="View on Google Books"
+                                >
+                                    <span className="material-symbols-outlined text-[20px]">visibility</span>
+                                </a>
+                            )}
                              <button 
                                 onClick={(e) => { e.stopPropagation(); onEdit(book); }}
                                 className="p-1.5 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"

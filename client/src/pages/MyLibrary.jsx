@@ -46,6 +46,7 @@ const MyLibrary = () => {
                         title: book.title,
                         authors: book.authors,
                         imageLinks: { thumbnail: book.thumbnail },
+                        previewLink: book.previewLink,
                         industryIdentifiers: [{ identifier: book.googleBookId }] // Keep google ID handy
                     },
                     userData: {

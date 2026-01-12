@@ -133,7 +133,8 @@ const Home = () => {
                 googleBookId: book.id,
                 title: book.volumeInfo.title,
                 authors: book.volumeInfo.authors || [],
-                thumbnail: book.volumeInfo.imageLinks?.thumbnail || ''
+                thumbnail: book.volumeInfo.imageLinks?.thumbnail || '',
+                previewLink: book.volumeInfo.previewLink
             };
             
             await api.post('/library', payload);

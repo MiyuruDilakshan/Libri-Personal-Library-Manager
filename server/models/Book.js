@@ -16,6 +16,7 @@ const bookSchema = mongoose.Schema({
     },
     authors: [String],
     thumbnail: String,
+    previewLink: String,
     status: {
         type: String,
         enum: ['Reading', 'Completed', 'Want to Read'],
