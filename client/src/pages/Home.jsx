@@ -22,6 +22,7 @@ const Home = () => {
     const [printType, setPrintType] = useState('all');
     const [isFreeEbook, setIsFreeEbook] = useState(false);
     const [orderBy, setOrderBy] = useState('relevance');
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
 
     // Refs
     const resultsRef = useRef(null);
@@ -216,7 +217,25 @@ const Home = () => {
                 <div ref={resultsRef} className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 flex flex-col lg:flex-row gap-8">
                     {/* Sidebar Filters */}
                     <aside className="w-full lg:w-64 flex-shrink-0 space-y-6 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto no-scrollbar pb-4">
-                        <div className="flex flex-col gap-5">
+                        {/* Mobile Filter Toggle Button */}
+                        <button
+                            onClick={() => setIsFilterOpen(!isFilterOpen)}
+                            className="lg:hidden w-full flex items-center justify-between px-4 py-3 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg shadow-sm hover:shadow-md transition-all"
+                        >
+                            <span className="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
+                                <span className="material-symbols-outlined">tune</span>
+                                Filters & Sorting
+                            </span>
+                            <span className={`material-symbols-outlined transition-transform ${
+                                isFilterOpen ? 'rotate-180' : ''
+                            }`}>
+                                expand_more
+                            </span>
+                        </button>
+                        
+                        <div className={`flex-col gap-5 ${
+                            isFilterOpen ? 'flex' : 'hidden lg:flex'
+                        }`}>
                             <div className="flex items-center justify-between">
                                 <h3 className="font-bold text-lg text-slate-900 dark:text-white tracking-tight">Filters</h3>
                                 <button 

@@ -1,7 +1,5 @@
 const request = require('supertest');
 const app = require('../server');
-// We do not mock DB here, so if validation passes, it might try to hit DB and fail or timeout if no DB is available.
-// But we only test for 400 bad request on missing fields.
 
 describe('Auth Endpoints', () => {
     

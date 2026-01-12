@@ -115,6 +115,21 @@ const Header = () => {
                             <span className="material-symbols-outlined text-[20px]">search</span>
                         </Link>
 
+                        {/* My Library Icon (Mobile - Only show if user logged in) */}
+                        {user && (
+                            <Link 
+                                to="/my-library" 
+                                className={`md:hidden p-2 rounded-full transition-colors ${
+                                    isTransparent 
+                                    ? 'text-white hover:bg-white/20' 
+                                    : 'text-slate-500 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800'
+                                }`}
+                                title="My Library"
+                            >
+                                <span className="material-symbols-outlined text-[20px]">collections_bookmark</span>
+                            </Link>
+                        )}
+
                         {/* Theme Toggle */}
                         <button 
                             onClick={toggleTheme}
@@ -145,7 +160,20 @@ const Header = () => {
                                             <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user.name}</p>
                                             <p className="text-xs text-slate-500 truncate">{user.email}</p>
                                         </div>
-                                        <Link to="/profile" className="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                        <Link 
+                                            to="/my-library" 
+                                            className="px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-2"
+                                            onClick={() => setIsProfileOpen(false)}
+                                        >
+                                            <span className="material-symbols-outlined text-[18px]">collections_bookmark</span>
+                                            My Library
+                                        </Link>
+                                        <Link 
+                                            to="/profile" 
+                                            className="px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-2"
+                                            onClick={() => setIsProfileOpen(false)}
+                                        >
+                                            <span className="material-symbols-outlined text-[18px]">settings</span>
                                             Profile Settings
                                         </Link>
                                         <button 
