@@ -195,7 +195,7 @@ const Home = () => {
 
                             {/* Quick Categories / Trending Buttons */}
                             <div className="flex flex-wrap justify-center gap-3">
-                                {['Fantasy', 'Sci-Fi', 'Classic', 'Romance', 'Technology', 'History'].map((tag) => (
+                                {['Fantasy', 'Classic', 'Romance', 'Technology', 'History'].map((tag) => (
                                     <button 
                                         key={tag}
                                         onClick={() => handleCategoryClick(tag, `subject:${tag.toLowerCase()}`, 'relevance')}
