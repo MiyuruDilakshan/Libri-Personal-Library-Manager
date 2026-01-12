@@ -8,7 +8,7 @@ import BookDetailModal from '../components/BookDetailModal';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../services/axiosInstance';
+import api from '../api/axiosInstance';
 
 const MyLibrary = () => {
     const { user, loading: authLoading } = useAuth();

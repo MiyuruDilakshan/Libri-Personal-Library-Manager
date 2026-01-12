@@ -3,7 +3,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import api from '../services/axiosInstance';
+import api from '../api/axiosInstance';
 
 const Home = () => {
     const { user } = useAuth();

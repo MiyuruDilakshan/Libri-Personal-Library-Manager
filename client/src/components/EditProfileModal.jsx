@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../services/axiosInstance';
+import api from '../api/axiosInstance';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 

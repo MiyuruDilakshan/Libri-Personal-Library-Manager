@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Header from '../components/Header';
 import { useAuth } from '../context/AuthContext';
-import api from '../services/axiosInstance';
+import api from '../api/axiosInstance';
 import { useNavigate } from 'react-router-dom';
 
 import EditProfileModal from '../components/EditProfileModal';
