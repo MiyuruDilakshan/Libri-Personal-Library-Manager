@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
 const EditProfileModal = ({ isOpen, onClose }) => {
-    const { user, login } = useAuth();     
+    const { user } = useAuth();     
     const { addToast } = useToast();
     const [formData, setFormData] = useState({
         name: '',

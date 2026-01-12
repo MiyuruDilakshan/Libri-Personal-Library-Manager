@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import api from '../services/axiosInstance';
@@ -47,7 +46,7 @@ const Home = () => {
                 orderBy: currentOrderBy
             };
             
-            const response = await axios.get('http://localhost:5000/api/books/search', { params });
+            const response = await api.get('/books/search', { params });
             const newBooks = response.data.items || [];
             
             setBooks(newBooks); // Always replace items for pagination
